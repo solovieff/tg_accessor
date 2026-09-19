@@ -136,7 +136,7 @@ def handle_segmentation(
                 md_file = threads_md_dir / f"thread_{idx:03d}_{start_date}.md"
                 participants = ", ".join(sorted({m.sender_name for m in th}))
                 export_dialogue_to_markdown(
-                    title=f"Ветка #{idx:03d} ({th[0].date_str}) | Участники: {participants}",
+                    title=f"Thread #{idx:03d} ({th[0].date_str}) | Participants: {participants}",
                     messages=th,
                     output_path=md_file,
                 )

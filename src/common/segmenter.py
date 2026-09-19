@@ -252,31 +252,31 @@ def export_user_dossier_markdown(
     top_partners = sorted(partner_counts.items(), key=lambda x: x[1], reverse=True)[:5]
 
     with open(output_path, mode="w", encoding="utf-8") as f:
-        f.write(f"# Досье участника: {user_name}\n\n")
-        f.write("## Сводка\n")
-        f.write(f"- **Пользователь:** {user_name}\n")
-        f.write(f"- **Период активности:** {first_date} — {last_date}\n")
-        f.write(f"- **Сообщений пользователя в выгрузке:** {len(user_own_msgs)}\n")
-        f.write(f"- **Сообщений в контексте диалогов:** {total_context_msgs}\n")
-        f.write(f"- **Количество отдельных раундов / споров:** {len(disputes)}\n")
+        f.write(f"# User dossier: {user_name}\n\n")
+        f.write("## Summary\n")
+        f.write(f"- **User:** {user_name}\n")
+        f.write(f"- **Active period:** {first_date} — {last_date}\n")
+        f.write(f"- **User's own messages in export:** {len(user_own_msgs)}\n")
+        f.write(f"- **Messages in dialogue context:** {total_context_msgs}\n")
+        f.write(f"- **Number of distinct rounds / disputes:** {len(disputes)}\n")
         if top_partners:
-            f.write("- **Основные собеседники / оппоненты:**\n")
+            f.write("- **Main interlocutors / opponents:**\n")
             for p_name, p_cnt in top_partners:
-                f.write(f"  - {p_name}: {p_cnt} реплик\n")
+                f.write(f"  - {p_name}: {p_cnt} messages\n")
         f.write("\n---\n\n")
 
         for idx, disp in enumerate(disputes, 1):
             start_time = disp[0].date_str or "N/A"
             participants = ", ".join(sorted({m.sender_name for m in disp}))
-            f.write(f"## Раунд / Спор #{idx} ({start_time}, сообщений: {len(disp)})\n")
-            f.write(f"*Участники: {participants}*\n\n")
+            f.write(f"## Round / Dispute #{idx} ({start_time}, messages: {len(disp)})\n")
+            f.write(f"*Participants: {participants}*\n\n")
             for m in disp:
                 is_curr_user = (m.sender_name == user_name)
                 author_badge = f"**>>> [{m.sender_name}] <<<**" if is_curr_user else f"**{m.sender_name}**"
-                reply_info = f" *(ответ на #{m.reply_to_msg_id})*" if m.reply_to_msg_id else ""
+                reply_info = f" *(reply to #{m.reply_to_msg_id})*" if m.reply_to_msg_id else ""
                 media_info = f" `[{m.media_type}]`" if m.media_type else ""
                 f.write(f"> {author_badge} ({m.date_str or 'N/A'}{reply_info}{media_info}):\n")
-                body = m.text.strip() or f"*(Вложение: {m.media_type or 'media'})*"
+                body = m.text.strip() or f"*(Attachment: {m.media_type or 'media'})*"
                 for line in body.splitlines():
                     f.write(f"> {line}\n")
                 f.write(">\n")
@@ -291,14 +291,14 @@ def export_dialogue_to_markdown(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, mode="w", encoding="utf-8") as f:
         f.write(f"# {title}\n\n")
-        f.write(f"*Всего сообщений: {len(messages)}*\n\n---\n\n")
+        f.write(f"*Total messages: {len(messages)}*\n\n---\n\n")
         for m in messages:
             author_badge = f"**{m.sender_name}**"
             date_info = m.date_str or "N/A"
-            reply_info = f" *(ответ на #{m.reply_to_msg_id})*" if m.reply_to_msg_id else ""
+            reply_info = f" *(reply to #{m.reply_to_msg_id})*" if m.reply_to_msg_id else ""
             media_info = f" `[{m.media_type}]`" if m.media_type else ""
             f.write(f"### {author_badge} | {date_info} (ID: {m.message_id}){reply_info}{media_info}\n")
-            t = m.text.strip() or f"*(Вложение: {m.media_type or 'media'})*"
+            t = m.text.strip() or f"*(Attachment: {m.media_type or 'media'})*"
             f.write(f"{t}\n\n---\n\n")
 
 

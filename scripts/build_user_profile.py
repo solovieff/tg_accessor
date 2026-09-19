@@ -32,24 +32,17 @@ from typing import Optional
 
 HEAT_ORDER = ["calm", "mild_disagreement", "clear_dispute", "hostile"]
 HEAT_EMOJI = {"calm": "\U0001F7E2", "mild_disagreement": "\U0001F7E1", "clear_dispute": "\U0001F7E0", "hostile": "\U0001F534"}
-HEAT_RU = {
-    "calm": "спокойные",
-    "mild_disagreement": "лёгкие разногласия",
-    "clear_dispute": "явные споры",
-    "hostile": "агрессивные конфликты",
-}
-
 HEADER_RE = re.compile(
-    r"# Разговор #(?P<index>\d+)\n\n"
-    r"- \*\*Период:\*\* (?P<start>[^\u2014]+)\u2014 (?P<end>[^\n]+)\n"
-    r"- \*\*Сообщений:\*\* (?P<count>\d+)\n"
-    r"- \*\*Участники:\*\* (?P<participants>[^\n]+)\n"
-    r"- \*\*Накал:\*\* \S+ (?P<heat_label>\w+) \(score=(?P<heat_score>[\d.]+)\)\n"
-    r"- \*\*Кто убедительнее в споре:\*\* (?P<convincing>[^\n]+)\n",
+    r"# Thread #(?P<index>\d+)\n\n"
+    r"- \*\*Period:\*\* (?P<start>[^\u2014]+)\u2014 (?P<end>[^\n]+)\n"
+    r"- \*\*Messages:\*\* (?P<count>\d+)\n"
+    r"- \*\*Participants:\*\* (?P<participants>[^\n]+)\n"
+    r"- \*\*Heat:\*\* \S+ (?P<heat_label>\w+) \(score=(?P<heat_score>[\d.]+)\)\n"
+    r"- \*\*More convincing side:\*\* (?P<convincing>[^\n]+)\n",
 )
 
-CONVINCING_NA_RE = re.compile(r"^н/д")
-CONVINCING_TIE_RE = re.compile(r"^не удалось определить")
+CONVINCING_NA_RE = re.compile(r"^n/a")
+CONVINCING_TIE_RE = re.compile(r"^undetermined")
 CONVINCING_NAMED_RE = re.compile(r"^(?P<name>.+?) \(confidence=(?P<confidence>[\d.]+)\)$")
 
 
@@ -150,43 +143,43 @@ def main() -> None:
     profile_path = Path(args.dir) / "PROFILE.md"
     total = len(user_threads)
     with open(profile_path, mode="w", encoding="utf-8") as f:
-        f.write(f"# Аналитический профиль: {args.user}\n\n")
-        f.write(f"- **Период:** {first_date} — {last_date}\n")
-        f.write(f"- **Всего разговоров:** {total}\n\n")
+        f.write(f"# Analytical profile: {args.user}\n\n")
+        f.write(f"- **Period:** {first_date} — {last_date}\n")
+        f.write(f"- **Total threads:** {total}\n\n")
 
-        f.write("## Распределение по накалу\n\n")
+        f.write("## Heat distribution\n\n")
         for label in HEAT_ORDER:
             count = heat_counts.get(label, 0)
             pct = (count / total * 100) if total else 0
-            f.write(f"- {HEAT_EMOJI[label]} {HEAT_RU[label]} ({label}): {count} ({pct:.1f}%)\n")
+            f.write(f"- {HEAT_EMOJI[label]} {label}: {count} ({pct:.1f}%)\n")
         f.write("\n")
 
         disputed_total = convincing_counts.get("named", 0) + convincing_counts.get("tie", 0)
-        f.write("## Убедительность в спорах\n\n")
+        f.write("## Convincingness in disputes\n\n")
         if disputed_total == 0:
-            f.write("*\u041d\u0435 \u0431\u044b\u043b\u043e \u0441\u043f\u043e\u0440\u043e\u0432 \u0441 \u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u044b\u043c \u043d\u0430\u043a\u0430\u043b\u043e\u043c, \u0447\u0442\u043e\u0431\u044b \u044d\u0442\u043e \u043e\u0446\u0435\u043d\u0438\u0432\u0430\u0442\u044c.*\n\n")
+            f.write("*No disputes with enough heat to score this.*\n\n")
         else:
-            f.write(f"- \u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u0431\u044b\u043b \u043f\u0440\u0438\u0437\u043d\u0430\u043d \u0431\u043e\u043b\u0435\u0435 \u0443\u0431\u0435\u0434\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u043c: {user_won} ")
-            f.write(f"({user_won / disputed_total * 100:.0f}% \u043e\u0442 \u043e\u0446\u0435\u043d\u0435\u043d\u043d\u044b\u0445 \u0441\u043f\u043e\u0440\u043e\u0432)\n")
-            f.write(f"- \u041e\u043f\u043f\u043e\u043d\u0435\u043d\u0442 \u0431\u044b\u043b \u0443\u0431\u0435\u0434\u0438\u0442\u0435\u043b\u044c\u043d\u0435\u0435: {opponent_won} ")
+            f.write(f"- User was judged more convincing: {user_won} ")
+            f.write(f"({user_won / disputed_total * 100:.0f}% of scored disputes)\n")
+            f.write(f"- Opponent was more convincing: {opponent_won} ")
             f.write(f"({opponent_won / disputed_total * 100:.0f}%)\n")
             tie = convincing_counts.get("tie", 0)
-            f.write(f"- \u041d\u0438\u0447\u044c\u044f / \u043d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u043f\u0440\u0435\u0434\u0435\u043b\u0438\u0442\u044c: {tie} ({tie / disputed_total * 100:.0f}%)\n\n")
+            f.write(f"- Tie / undetermined: {tie} ({tie / disputed_total * 100:.0f}%)\n\n")
 
-        f.write("## \u0413\u043b\u0430\u0432\u043d\u044b\u0435 \u043e\u043f\u043f\u043e\u043d\u0435\u043d\u0442\u044b\n\n")
+        f.write("## Top opponents\n\n")
         if not top_opponents:
-            f.write("*\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445.*\n\n")
+            f.write("*No data.*\n\n")
         else:
             for name, count in top_opponents:
                 heated = opponent_heated_counts.get(name, 0)
-                f.write(f"- {name} \u2014 {count} \u0441\u043e\u0432\u043c\u0435\u0441\u0442\u043d\u044b\u0445 \u0440\u0430\u0437\u0433\u043e\u0432\u043e\u0440\u043e\u0432 (\u0438\u0437 \u043d\u0438\u0445 {heated} \U0001F7E0/\U0001F534)\n")
+                f.write(f"- {name} — {count} shared threads ({heated} of them \U0001F7E0/\U0001F534)\n")
             f.write("\n")
 
-        f.write("## \u0421\u0430\u043c\u044b\u0435 \u043e\u0436\u0435\u0441\u0442\u043e\u0447\u0451\u043d\u043d\u044b\u0435 \u0440\u0430\u0437\u0433\u043e\u0432\u043e\u0440\u044b\n\n")
+        f.write("## Most heated threads\n\n")
         for rank, t in enumerate(heated_threads, 1):
             rel_path = f"markdown/{t['path'].name}"
             f.write(
-                f"{rank}. [{t['path'].stem}]({rel_path}) \u2014 {t['count']} \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439, "
+                f"{rank}. [{t['path'].stem}]({rel_path}) — {t['count']} messages, "
                 f"{HEAT_EMOJI[t['heat_label']]} {t['heat_label']} (score={t['heat_score']:.2f})\n"
             )
 

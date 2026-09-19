@@ -57,37 +57,37 @@ def export_thread_markdown(
     }
 
     with open(path, mode="w", encoding="utf-8") as f:
-        f.write(f"# Разговор #{index}\n\n")
-        f.write(f"- **Период:** {start} — {end}\n")
-        f.write(f"- **Сообщений:** {len(thread)}\n")
-        f.write(f"- **Участники:** {', '.join(participants)}\n")
+        f.write(f"# Thread #{index}\n\n")
+        f.write(f"- **Period:** {start} — {end}\n")
+        f.write(f"- **Messages:** {len(thread)}\n")
+        f.write(f"- **Participants:** {', '.join(participants)}\n")
         if insight is not None:
             emoji = heat_emoji.get(insight.heat_label, "")
             f.write(
-                f"- **Накал:** {emoji} {insight.heat_label} (score={insight.heat_score:.2f})\n"
+                f"- **Heat:** {emoji} {insight.heat_label} (score={insight.heat_score:.2f})\n"
             )
             if insight.more_convincing_confidence is None:
                 f.write(
-                    "- **Кто убедительнее в споре:** "
-                    "н/д (спокойный разговор без спора)\n"
+                    "- **More convincing side:** "
+                    "n/a (calm conversation, no dispute)\n"
                 )
             elif insight.more_convincing_participant is None:
                 f.write(
-                    f"- **Кто убедительнее в споре:** "
-                    f"не удалось определить / ничья "
+                    f"- **More convincing side:** "
+                    f"undetermined / tie "
                     f"(confidence={insight.more_convincing_confidence:.2f})\n"
                 )
             else:
                 f.write(
-                    f"- **Кто убедительнее в споре:** "
+                    f"- **More convincing side:** "
                     f"{insight.more_convincing_participant} "
                     f"(confidence={insight.more_convincing_confidence:.2f})\n"
                 )
         f.write("\n---\n\n")
 
         for m in thread:
-            reply_info = f" *(ответ на #{m.reply_to_msg_id})*" if m.reply_to_msg_id else ""
+            reply_info = f" *(reply to #{m.reply_to_msg_id})*" if m.reply_to_msg_id else ""
             media_info = f" `[{m.media_type}]`" if m.media_type else ""
             f.write(f"### **{m.sender_name}** | {m.date_str or 'N/A'} (ID: {m.message_id}){reply_info}{media_info}\n")
-            body = m.text.strip() or f"*(Вложение: {m.media_type or 'media'})*"
+            body = m.text.strip() or f"*(Attachment: {m.media_type or 'media'})*"
             f.write(f"{body}\n\n---\n\n")

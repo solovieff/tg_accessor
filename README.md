@@ -107,51 +107,51 @@ how many opponents/threads are listed.
 
 Example profile output (real run, names changed):
 ```markdown
-# Аналитический профиль: Alice (@alice_handle)
+# Analytical profile: Alice (@alice_handle)
 
-- **Период:** 2025-06-20 05:18:45 UTC — 2026-09-18 16:34:06 UTC
-- **Всего разговоров:** 1710
+- **Period:** 2025-06-20 05:18:45 UTC — 2026-09-18 16:34:06 UTC
+- **Total threads:** 1710
 
-## Распределение по накалу
+## Heat distribution
 
-- 🟢 спокойные (calm): 216 (12.6%)
-- 🟡 лёгкие разногласия (mild_disagreement): 534 (31.2%)
-- 🟠 явные споры (clear_dispute): 809 (47.3%)
-- 🔴 агрессивные конфликты (hostile): 151 (8.8%)
+- 🟢 calm: 216 (12.6%)
+- 🟡 mild_disagreement: 534 (31.2%)
+- 🟠 clear_dispute: 809 (47.3%)
+- 🔴 hostile: 151 (8.8%)
 
-## Убедительность в спорах
+## Convincingness in disputes
 
-- Пользователь был признан более убедительным: 329 (26% от оцененных споров)
-- Оппонент был убедительнее: 841 (66%)
-- Ничья / не удалось определить: 106 (8%)
+- User was judged more convincing: 329 (26% of scored disputes)
+- Opponent was more convincing: 841 (66%)
+- Tie / undetermined: 106 (8%)
 
-## Главные оппоненты
+## Top opponents
 
-- Bob (@bob_handle) — 437 совместных разговоров (из них 229 🟠/🔴)
-- Carol (@carol_handle) — 400 совместных разговоров (из них 289 🟠/🔴)
+- Bob (@bob_handle) — 437 shared threads (229 of them 🟠/🔴)
+- Carol (@carol_handle) — 400 shared threads (289 of them 🟠/🔴)
 
-## Самые ожесточённые разговоры
+## Most heated threads
 
-1. [thread_503_20251021_144008_UTC](markdown/thread_503_20251021_144008_UTC.md) — 85 сообщений, 🔴 hostile (score=3.00)
+1. [thread_503_20251021_144008_UTC](markdown/thread_503_20251021_144008_UTC.md) — 85 messages, 🔴 hostile (score=3.00)
 ```
 
 Example thread output (real run, names changed):
 ```markdown
-# Разговор #12
+# Thread #12
 
-- **Период:** 2025-06-24 15:19:45 UTC — 2025-06-24 18:02:01 UTC
-- **Сообщений:** 31
-- **Участники:** Alice, Bob, Carol, Dan, Eve, Frank
-- **Накал:** 🔴 hostile (score=2.56)
-- **Кто убедительнее в споре:** Bob (confidence=0.71)
+- **Period:** 2025-06-24 15:19:45 UTC — 2025-06-24 18:02:01 UTC
+- **Messages:** 31
+- **Participants:** Alice, Bob, Carol, Dan, Eve, Frank
+- **Heat:** 🔴 hostile (score=2.56)
+- **More convincing side:** Bob (confidence=0.71)
 
 ---
 
-### **Bob** | 2025-06-24 15:19:45 UTC (ID: 439709) *(ответ на #439707)*
+### **Bob** | 2025-06-24 15:19:45 UTC (ID: 439709) *(reply to #439707)*
 ...message text...
 ```
-A calm thread with no real disagreement gets `**Кто убедительнее в споре:**
-н/д (спокойный разговор без спора)` instead — the question is only asked when
+A calm thread with no real disagreement gets `**More convincing side:**
+n/a (calm conversation, no dispute)` instead — the question is only asked when
 the heat score shows an actual dispute (see `src/smart_segmenter/classifier.py`
 for why this is phrased as "who was more convincing" rather than a plain
 yes/no "was it resolved", which turned out to be a near-useless signal in
