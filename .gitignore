@@ -1,0 +1,60 @@
+# Environment variables
+.env
+.venv
+.pytest_cache
+.skills
+
+# Telegram session files
+*.session
+*.session-journal
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# TypeSafe response cache (local, safe to regenerate)
+.typesafe_cache.json
+
+# Smart segmenter output (regenerable from CSV exports)
+smart_exported_dialogues/
+
+# Personal Telegram exports and derived dialogue dumps (contain real people's
+# private messages, names, and usernames — never commit these)
+exported_dialogues/
+*.csv
+group_dialogue_export.csv
