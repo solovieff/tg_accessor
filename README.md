@@ -13,6 +13,7 @@ CLI tools for exporting Telegram group messages and their surrounding dialogue c
 - Built-in group activity analytics (`--analyze`).
 - Heuristic segmentation of an exported CSV by user and by thread (`group_seeker --from-csv ...`).
 - **`smart_segmenter`**: TypeSafe (Jev)-powered thread segmentation — links messages that continue the same topic/argument even without an explicit reply, and rates each thread's conflict intensity and whether it was resolved.
+- **`build_user_profile.py`**: rolls up a person's already-segmented threads into a single `PROFILE.md` — heat distribution, how often they were judged more convincing, top opponents, links to their hottest threads. Pure local Markdown parsing, no extra API calls.
 - Advanced/optional: deleting the target user's own messages after export (see below) — not the main point of this project.
 
 ## Setup
@@ -28,8 +29,9 @@ Fill in the environment variables in `.env` (see `.env.example`):
 
 All you need to get going: a Telegram group ID/handle (in `.env` or passed on
 the command line) and a `TYPESAFE_API_KEY` (see Setup above). The full flow
-has three steps: **export the group once**, then **smart-segment it** — either
-for everyone at once, or focused on one person.
+is: **export the group once**, then **smart-segment it** — either for
+everyone at once, or focused on one person — and optionally roll the result
+up into a one-page **analytical profile**.
 
 **Step 1 — export a group's full history:**
 ```bash
@@ -84,6 +86,54 @@ the same topic/argument even without an explicit reply, scores each
 resulting thread's conflict intensity, and writes `markdown/*.md` and
 `csv/*.csv` — one file per thread with at least `--min-thread-messages`
 (default 5) messages.
+
+**Step 3 (optional) — build a one-page analytical profile.** Once
+`smart_segmenter` has written its `markdown/*.md` thread files for a person
+(Step 2), `build_user_profile.py` reads all of them and rolls them up into a
+single `PROFILE.md`: how many threads fall into each heat level, how often
+this person was judged more convincing than their opponent (or vice versa,
+or a tie), their top opponents by shared thread count, and links to their
+hottest threads. This is pure local Markdown parsing — no TypeSafe calls, so
+it's free and instant to (re)run after every segmenting pass:
+```bash
+uv run python scripts/build_user_profile.py \
+  --dir smart_exported_dialogues/alice \
+  --user "Alice (@alice_handle)"
+```
+`--user` must match the same `sender_name` used in Step 2. This writes
+`smart_exported_dialogues/alice/PROFILE.md`. Optional flags:
+`--top-opponents N` (default 8) and `--top-heated N` (default 10) control
+how many opponents/threads are listed.
+
+Example profile output (real run, names changed):
+```markdown
+# Аналитический профиль: Alice (@alice_handle)
+
+- **Период:** 2025-06-20 05:18:45 UTC — 2026-09-18 16:34:06 UTC
+- **Всего разговоров:** 1710
+
+## Распределение по накалу
+
+- 🟢 спокойные (calm): 216 (12.6%)
+- 🟡 лёгкие разногласия (mild_disagreement): 534 (31.2%)
+- 🟠 явные споры (clear_dispute): 809 (47.3%)
+- 🔴 агрессивные конфликты (hostile): 151 (8.8%)
+
+## Убедительность в спорах
+
+- Пользователь был признан более убедительным: 329 (26% от оцененных споров)
+- Оппонент был убедительнее: 841 (66%)
+- Ничья / не удалось определить: 106 (8%)
+
+## Главные оппоненты
+
+- Bob (@bob_handle) — 437 совместных разговоров (из них 229 🟠/🔴)
+- Carol (@carol_handle) — 400 совместных разговоров (из них 289 🟠/🔴)
+
+## Самые ожесточённые разговоры
+
+1. [thread_503_20251021_144008_UTC](markdown/thread_503_20251021_144008_UTC.md) — 85 сообщений, 🔴 hostile (score=3.00)
+```
 
 Example thread output (real run, names changed):
 ```markdown
