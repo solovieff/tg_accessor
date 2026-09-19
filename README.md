@@ -8,6 +8,48 @@ CLI tools for exporting Telegram group messages and their surrounding dialogue c
 > is no explicit reply link. TypeSafe is a very young product, so treat this
 > as an experimental showcase rather than a battle-tested solution.
 
+## The use case
+
+You're in a large, chatty Telegram group. You want to know: **what has this
+one person actually been arguing about for the last few months, who do they
+clash with, and who tends to win those arguments?** Scrolling through
+thousands of messages by hand isn't an option, and a plain reply-chain dump
+is useless because most of the real back-and-forth in a group chat happens
+*without* hitting "reply."
+
+This toolkit does the whole pipeline for you:
+1. **Export** the group's full message history to CSV.
+2. **Narrow it down** to one person's own messages plus their immediate
+   dialogue context (cheap, local, no API calls).
+3. **Smart-segment** that slice with TypeSafe — it stitches messages into
+   coherent topical threads even across gaps and non-reply messages, then
+   scores each thread's conflict intensity and who came across as more
+   convincing.
+4. **Roll it all up** into one `PROFILE.md`: heat distribution, win/loss/tie
+   record in disputes, top opponents, links to the hottest threads.
+
+End to end, that's:
+```bash
+./run.sh -1001234567890 --analyze --export-md
+
+uv run python scripts/build_focused_user_csv.py \
+  --from-csv exported_dialogues/group_dialogue_export.csv \
+  --user "Alice (@alice_handle)" \
+  --since 2025-06-19 \
+  --output /tmp/alice_focused.csv
+
+uv run smart-segmenter \
+  --from-csv /tmp/alice_focused.csv \
+  --output-dir smart_exported_dialogues/alice
+
+uv run python scripts/build_user_profile.py \
+  --dir smart_exported_dialogues/alice \
+  --user "Alice (@alice_handle)"
+```
+...and you get `smart_exported_dialogues/alice/PROFILE.md`, plus one Markdown
+file per thread. The step-by-step breakdown, all the flags, and example
+output are below.
+
 ## Features
 - Export a group's full message history, or just a target user's messages plus their surrounding dialogue context (replies, mentions, nearby messages), to CSV (`UTF-8`).
 - Built-in group activity analytics (`--analyze`).
